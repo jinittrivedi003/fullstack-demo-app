@@ -1,0 +1,30 @@
+# ─── Dependencies ────────────────────────────────────────────────────────────
+node_modules/
+
+# ─── Environment & Secrets ───────────────────────────────────────────────────
+.env
+*.env.local
+*.env.*.local
+
+# ─── Backend: Uploaded Files ─────────────────────────────────────────────────
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ─── Frontend: Build Output ──────────────────────────────────────────────────
+frontend/dist/
+frontend/.angular/
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+
+# ─── OS & Editor ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ─── Misc ────────────────────────────────────────────────────────────────────
+*.tgz
+*.zip
