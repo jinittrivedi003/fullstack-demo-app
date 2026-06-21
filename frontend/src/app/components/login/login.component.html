@@ -1,0 +1,79 @@
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <div class="auth-logo">&#9670;</div>
+      <h1>Welcome Back</h1>
+      <p>Sign in to your account to continue</p>
+    </div>
+
+    <div class="alert alert-error" *ngIf="errorMessage">
+      <span>&#9888;</span> {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          placeholder="Enter your username"
+          [class.error]="form.get('username')?.touched && form.get('username')?.invalid"
+          autocomplete="username"
+        />
+        <span class="error-text" *ngIf="err('username')">{{ err('username') }}</span>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-icon-group">
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Enter your password"
+            [class.error]="form.get('password')?.touched && form.get('password')?.invalid"
+            autocomplete="current-password"
+          />
+          <button type="button" class="toggle-pw" (click)="showPassword = !showPassword" tabindex="-1">
+            {{ showPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        <span class="error-text" *ngIf="err('password')">{{ err('password') }}</span>
+      </div>
+
+      <div class="form-group">
+        <label>Image CAPTCHA</label>
+        <div class="captcha-row">
+          <canvas #captchaCanvas class="captcha-canvas"></canvas>
+          <button type="button" class="captcha-refresh" (click)="generateCaptcha()" title="Refresh CAPTCHA">
+            &#8635;
+          </button>
+        </div>
+        <input
+          type="text"
+          formControlName="captchaInput"
+          placeholder="Type the characters shown above"
+          [class.error]="form.get('captchaInput')?.touched && form.get('captchaInput')?.invalid"
+          autocomplete="off"
+        />
+        <span class="error-text" *ngIf="form.get('captchaInput')?.touched && form.get('captchaInput')?.errors?.['required']">
+          Please enter the CAPTCHA.
+        </span>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        <span class="spinner" *ngIf="isLoading"></span>
+        <span *ngIf="!isLoading">Sign In</span>
+      </button>
+
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a routerLink="/register">Register here</a>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,25 @@
+<nav class="navbar">
+  <div class="navbar-inner">
+
+    <a class="brand" [routerLink]="isLoggedIn ? '/profile' : '/login'">
+      <span class="brand-icon">&#9670;</span>
+      <span class="brand-name">MyApp</span>
+    </a>
+
+    <!-- Logged-in navigation -->
+    <div class="nav-links" *ngIf="isLoggedIn">
+      <a routerLink="/personal-details" routerLinkActive="active">Personal Details</a>
+      <a routerLink="/profile" routerLinkActive="active">Profile</a>
+      <div class="nav-divider"></div>
+      <span class="nav-user">Hi, <strong>{{ username }}</strong></span>
+      <button class="btn-logout" (click)="logout()">Logout</button>
+    </div>
+
+    <!-- Guest navigation -->
+    <div class="nav-links" *ngIf="!isLoggedIn">
+      <a routerLink="/login" routerLinkActive="active">Login</a>
+      <a routerLink="/register" routerLinkActive="active">Register</a>
+    </div>
+
+  </div>
+</nav>

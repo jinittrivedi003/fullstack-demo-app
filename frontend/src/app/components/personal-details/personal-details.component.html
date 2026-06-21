@@ -1,0 +1,132 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>Personal Details</h1>
+    <p>Fill in your personal information and upload supporting documents.</p>
+  </div>
+
+  <div class="loading-state" *ngIf="isFetching">
+    <div class="spinner-lg"></div>
+    <span>Loading your details...</span>
+  </div>
+
+  <div class="content-grid" *ngIf="!isFetching">
+
+    <!-- ── Form Card ── -->
+    <div class="card form-card">
+      <div class="card-header">
+        <h2>&#128100; Personal Information</h2>
+      </div>
+      <div class="card-body">
+
+        <div class="alert alert-success" *ngIf="successMessage">&#10003; {{ successMessage }}</div>
+        <div class="alert alert-error" *ngIf="errorMessage">&#9888; {{ errorMessage }}</div>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fullName">Full Name <span class="required">*</span></label>
+              <input id="fullName" type="text" formControlName="fullName"
+                placeholder="e.g. John Michael Smith"
+                [class.error]="form.get('fullName')?.touched && form.get('fullName')?.invalid" />
+              <span class="error-text" *ngIf="err('fullName')">{{ err('fullName') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label for="dob">Date of Birth <span class="required">*</span></label>
+              <input id="dob" type="date" formControlName="dateOfBirth"
+                [max]="today"
+                [class.error]="form.get('dateOfBirth')?.touched && form.get('dateOfBirth')?.invalid" />
+              <span class="error-text" *ngIf="err('dateOfBirth')">{{ err('dateOfBirth') }}</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email Address <span class="required">*</span></label>
+              <input id="email" type="email" formControlName="email"
+                placeholder="your@email.com"
+                [class.error]="form.get('email')?.touched && form.get('email')?.invalid" />
+              <span class="error-text" *ngIf="err('email')">{{ err('email') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label for="mobile">Mobile Number <span class="required">*</span></label>
+              <input id="mobile" type="tel" formControlName="mobileNumber"
+                placeholder="e.g. +1 234 567 8900"
+                [class.error]="form.get('mobileNumber')?.touched && form.get('mobileNumber')?.invalid" />
+              <span class="error-text" *ngIf="err('mobileNumber')">{{ err('mobileNumber') }}</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="address">Address <span class="required">*</span></label>
+            <textarea id="address" formControlName="address" rows="3"
+              placeholder="Enter your full address"
+              [class.error]="form.get('address')?.touched && form.get('address')?.invalid"></textarea>
+            <span class="error-text" *ngIf="err('address')">{{ err('address') }}</span>
+          </div>
+
+          <!-- File Upload -->
+          <div class="upload-section">
+            <label class="upload-label">Supporting Documents</label>
+            <div class="upload-drop-area" (click)="fileInput.click()">
+              <div class="upload-icon">&#128206;</div>
+              <p class="upload-hint">Click to browse files</p>
+              <p class="upload-meta">JPG, PNG, PDF &bull; Max 5 MB per file &bull; Up to 5 files</p>
+              <input #fileInput type="file" multiple hidden
+                accept=".jpg,.jpeg,.png,.pdf"
+                (change)="onFileChange($event)" />
+            </div>
+
+            <div class="file-errors" *ngIf="fileErrors.length > 0">
+              <div class="alert alert-error" *ngFor="let e of fileErrors">&#9888; {{ e }}</div>
+            </div>
+
+            <div class="file-list" *ngIf="selectedFiles.length > 0">
+              <div class="file-item" *ngFor="let f of selectedFiles; let i = index">
+                <span class="file-icon">{{ f.type === 'application/pdf' ? '&#128196;' : '&#128247;' }}</span>
+                <span class="file-name">{{ f.name }}</span>
+                <span class="file-size">{{ formatSize(f.size) }}</span>
+                <button type="button" class="file-remove" (click)="removeFile(i)">&#10005;</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="isLoading">
+              <span class="spinner" *ngIf="isLoading"></span>
+              <span *ngIf="!isLoading">Save Personal Details</span>
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Existing Attachments Card ── -->
+    <div class="card attachment-card" *ngIf="existingUser?.personalDetails?.attachments?.length">
+      <div class="card-header">
+        <h2>&#128206; Uploaded Documents</h2>
+      </div>
+      <div class="card-body">
+        <div class="att-list">
+          <div class="att-item" *ngFor="let att of existingUser?.personalDetails?.attachments">
+            <div class="att-icon">
+              <span *ngIf="att.mimetype === 'application/pdf'">&#128196;</span>
+              <span *ngIf="att.mimetype !== 'application/pdf'">&#128247;</span>
+            </div>
+            <div class="att-info">
+              <span class="att-name">{{ att.originalName }}</span>
+              <span class="att-meta">{{ (att.size / 1024).toFixed(1) }} KB &bull; {{ att.uploadedAt | date:'dd MMM yyyy' }}</span>
+            </div>
+            <span class="badge" [ngClass]="att.mimetype === 'application/pdf' ? 'badge-red' : 'badge-blue'">
+              {{ att.mimetype === 'application/pdf' ? 'PDF' : 'Image' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

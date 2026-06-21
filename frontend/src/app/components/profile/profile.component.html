@@ -1,0 +1,201 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1>My Profile</h1>
+    <p>View your profile, manage documents and account settings.</p>
+  </div>
+
+  <div class="loading-state" *ngIf="isFetching">
+    <div class="spinner-lg"></div>
+    <span>Loading profile...</span>
+  </div>
+
+  <div class="profile-grid" *ngIf="!isFetching && user">
+
+    <!-- ── LEFT COLUMN ── -->
+    <div class="left-col">
+
+      <!-- Account Info Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2>&#128100; Account Information</h2>
+        </div>
+        <div class="card-body">
+          <div class="avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+          <div class="info-row">
+            <span class="info-label">Username</span>
+            <span class="info-value">{{ user.username }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ user.email }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Member since</span>
+            <span class="info-value">{{ formatDate(user.createdAt) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Status</span>
+            <span class="badge badge-green">Active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Document Download Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2>&#128196; Download Documents</h2>
+        </div>
+        <div class="card-body">
+          <p class="download-hint" *ngIf="!hasDetails">
+            &#9432; Complete your <a routerLink="/personal-details">personal details</a> first to enable downloads.
+          </p>
+          <div class="alert alert-error" *ngIf="dlError">&#9888; {{ dlError }}</div>
+          <div class="download-buttons" *ngIf="hasDetails">
+            <button class="download-btn pdf-btn" (click)="downloadFile('pdf')" [disabled]="dlLoading['pdf']">
+              <span class="spinner" *ngIf="dlLoading['pdf']"></span>
+              <span *ngIf="!dlLoading['pdf']">&#128196; Download PDF</span>
+            </button>
+            <button class="download-btn docx-btn" (click)="downloadFile('docx')" [disabled]="dlLoading['docx']">
+              <span class="spinner docx-spinner" *ngIf="dlLoading['docx']"></span>
+              <span *ngIf="!dlLoading['docx']">&#128221; Download Word (.docx)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT COLUMN ── -->
+    <div class="right-col">
+
+      <!-- Personal Details Card -->
+      <div class="card">
+        <div class="card-header header-flex">
+          <h2>&#128203; Personal Details</h2>
+          <a routerLink="/personal-details" class="edit-link">&#9998; Edit</a>
+        </div>
+        <div class="card-body">
+          <div *ngIf="!hasDetails" class="empty-state">
+            <span>&#128203;</span>
+            <p>No personal details submitted yet.</p>
+            <a routerLink="/personal-details" class="btn btn-secondary">Fill in Details</a>
+          </div>
+          <div *ngIf="hasDetails">
+            <div class="detail-grid">
+              <div class="detail-item">
+                <span class="detail-label">Full Name</span>
+                <span class="detail-value">{{ user.personalDetails.fullName }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Date of Birth</span>
+                <span class="detail-value">{{ formatDate(user.personalDetails.dateOfBirth) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Email Address</span>
+                <span class="detail-value">{{ user.personalDetails.email }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Mobile Number</span>
+                <span class="detail-value">{{ user.personalDetails.mobileNumber }}</span>
+              </div>
+              <div class="detail-item full-width">
+                <span class="detail-label">Address</span>
+                <span class="detail-value">{{ user.personalDetails.address }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attachments Card -->
+      <div class="card" *ngIf="user.personalDetails?.attachments?.length">
+        <div class="card-header">
+          <h2>&#128206; Uploaded Attachments ({{ user.personalDetails.attachments.length }})</h2>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-error" *ngIf="deleteError">&#9888; {{ deleteError }}</div>
+          <div class="att-list">
+            <div class="att-item" *ngFor="let att of user.personalDetails.attachments">
+              <div class="att-icon">
+                <span *ngIf="att.mimetype === 'application/pdf'">&#128196;</span>
+                <span *ngIf="att.mimetype !== 'application/pdf'">&#128247;</span>
+              </div>
+              <div class="att-info">
+                <span class="att-name">{{ att.originalName }}</span>
+                <span class="att-meta">{{ formatSize(att.size) }} &bull; {{ att.uploadedAt | date:'dd MMM yyyy' }}</span>
+              </div>
+              <span class="badge" [ngClass]="att.mimetype === 'application/pdf' ? 'badge-red' : 'badge-blue'">
+                {{ att.mimetype === 'application/pdf' ? 'PDF' : 'Image' }}
+              </span>
+              <button class="btn btn-danger" (click)="deleteAttachment(att._id)"
+                [disabled]="deleteLoading[att._id]" title="Delete">
+                <span class="spinner btn-spinner" *ngIf="deleteLoading[att._id]"></span>
+                <span *ngIf="!deleteLoading[att._id]">&#128465;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Change Password Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2>&#128272; Change Password</h2>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-success" *ngIf="pwSuccess">&#10003; {{ pwSuccess }}</div>
+          <div class="alert alert-error" *ngIf="pwError">&#9888; {{ pwError }}</div>
+
+          <form [formGroup]="pwForm" (ngSubmit)="changePassword()" novalidate>
+            <div class="form-group">
+              <label for="currentPw">Current Password</label>
+              <div class="input-icon-group">
+                <input id="currentPw" [type]="showCurrent ? 'text' : 'password'"
+                  formControlName="currentPassword" placeholder="Enter current password"
+                  [class.error]="pwForm.get('currentPassword')?.touched && pwForm.get('currentPassword')?.invalid" />
+                <button type="button" class="toggle-pw" (click)="showCurrent = !showCurrent" tabindex="-1">
+                  {{ showCurrent ? 'Hide' : 'Show' }}
+                </button>
+              </div>
+              <span class="error-text" *ngIf="pwErr('currentPassword')">{{ pwErr('currentPassword') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label for="newPw">New Password</label>
+              <div class="input-icon-group">
+                <input id="newPw" [type]="showNew ? 'text' : 'password'"
+                  formControlName="newPassword" placeholder="Minimum 6 characters"
+                  [class.error]="pwForm.get('newPassword')?.touched && pwForm.get('newPassword')?.invalid" />
+                <button type="button" class="toggle-pw" (click)="showNew = !showNew" tabindex="-1">
+                  {{ showNew ? 'Hide' : 'Show' }}
+                </button>
+              </div>
+              <span class="error-text" *ngIf="pwErr('newPassword')">{{ pwErr('newPassword') }}</span>
+            </div>
+
+            <div class="form-group">
+              <label for="confirmPw">Confirm New Password</label>
+              <div class="input-icon-group">
+                <input id="confirmPw" [type]="showConfirm ? 'text' : 'password'"
+                  formControlName="confirmPassword" placeholder="Re-enter new password"
+                  [class.error]="pwForm.get('confirmPassword')?.touched && (pwForm.get('confirmPassword')?.invalid || pwForm.errors?.['mismatch'])" />
+                <button type="button" class="toggle-pw" (click)="showConfirm = !showConfirm" tabindex="-1">
+                  {{ showConfirm ? 'Hide' : 'Show' }}
+                </button>
+              </div>
+              <span class="error-text" *ngIf="pwForm.get('confirmPassword')?.touched && pwForm.errors?.['mismatch']">
+                Passwords do not match.
+              </span>
+            </div>
+
+            <button type="submit" class="btn-primary" [disabled]="pwLoading">
+              <span class="spinner" *ngIf="pwLoading"></span>
+              <span *ngIf="!pwLoading">Update Password</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
